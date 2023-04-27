@@ -2,6 +2,7 @@
 #include <DHT.h>
 #include <RotaryEncoder.h>
 #include <LiquidCrystal.h>
+#include <Wire.h>
 #define DHT11PIN 4
 
 #define DHTTYPE DHT11
@@ -19,8 +20,8 @@ int pinAStateLast = pinAstateCurrent;
 int prevSwitchState = HIGH;
 
 const int redPin = 5;
-const int greenPin = 6;
-const int bluePin = 7;
+const int greenPin = 18;
+const int bluePin = 12;
 
 //temperature
   float deftemp = 17.5;
@@ -29,8 +30,8 @@ const int bluePin = 7;
 
   //humidity
   float defhumidity = 50;
-  float minhumidity = 0;
-  float maxhumidity = 100;
+  float minhumidity = 25;
+  float maxhumidity = 60;
 
 
 
@@ -59,18 +60,34 @@ void loop()
   tf = dht.readTemperature(true);
 
   // Check if temperature and humidity values are out of range
-  boolean isTemperatureOutOfRange = tc < maxtemp && tc > mintemp;
-  boolean isHumidityOutOfRange = h < maxhumidity && h > minhumidity;
+
+
+  boolean isTemperatureOutOfRange;
+  boolean isHumidityOutOfRange;
+
+
+  if (tc > maxtemp || tc < mintemp) {
+    isTemperatureOutOfRange = true;
+  } else {
+    isTemperatureOutOfRange = false;
+  }
+
+  if (h > maxhumidity || h < minhumidity) {
+    isHumidityOutOfRange = true;
+  } else {
+    isHumidityOutOfRange = false;
+  }
+
 
   if (isTemperatureOutOfRange && isHumidityOutOfRange) {
     // Flash between red and blue
-    analogWrite(redPin, 255);
+    analogWrite(redPin, 0);
     analogWrite(greenPin, 0);
     analogWrite(bluePin, 255);
     delay(500);
-    analogWrite(redPin, 0);
     analogWrite(greenPin, 0);
     analogWrite(bluePin, 0);
+    analogWrite(redPin, 255);
     delay(500);
   } else if (isTemperatureOutOfRange) {
     // Turn on red LED
@@ -82,7 +99,7 @@ void loop()
     analogWrite(redPin, 0);
     analogWrite(greenPin, 0);
     analogWrite(bluePin, 255);
-  } else {
+  } else if (!isTemperatureOutOfRange && !isHumidityOutOfRange){
     // Turn on green LED
     analogWrite(redPin, 0);
     analogWrite(greenPin, 255);
