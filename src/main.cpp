@@ -18,6 +18,10 @@ int pinAstateCurrent = LOW;
 int pinAStateLast = pinAstateCurrent;
 int prevSwitchState = HIGH;
 
+const int redPin = 5;
+const int greenPin = 6;
+const int bluePin = 7;
+
 //temperature
   float deftemp = 17.5;
   float mintemp = 5;
@@ -41,10 +45,50 @@ void setup()
   pinMode(switchPin, INPUT_PULLUP);
   pinMode(pinA, INPUT);
   pinMode(pinB, INPUT);
+
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
 }
 
 void loop()
 {
+    // Read temperature and humidity data from DHT11 sensor
+  h = dht.readHumidity();
+  tc = dht.readTemperature();
+  tf = dht.readTemperature(true);
+
+  // Check if temperature and humidity values are out of range
+  boolean isTemperatureOutOfRange = tc < maxtemp && tc > mintemp;
+  boolean isHumidityOutOfRange = h < maxhumidity && h > minhumidity;
+
+  if (isTemperatureOutOfRange && isHumidityOutOfRange) {
+    // Flash between red and blue
+    analogWrite(redPin, 255);
+    analogWrite(greenPin, 0);
+    analogWrite(bluePin, 255);
+    delay(500);
+    analogWrite(redPin, 0);
+    analogWrite(greenPin, 0);
+    analogWrite(bluePin, 0);
+    delay(500);
+  } else if (isTemperatureOutOfRange) {
+    // Turn on red LED
+    analogWrite(redPin, 255);
+    analogWrite(greenPin, 0);
+    analogWrite(bluePin, 0);
+  } else if (isHumidityOutOfRange) {
+    // Turn on blue LED
+    analogWrite(redPin, 0);
+    analogWrite(greenPin, 0);
+    analogWrite(bluePin, 255);
+  } else {
+    // Turn on green LED
+    analogWrite(redPin, 0);
+    analogWrite(greenPin, 255);
+    analogWrite(bluePin, 0);
+  }
+
   
   //BUTTON
   switchState = digitalRead(switchPin);
